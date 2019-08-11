@@ -6,7 +6,7 @@ An automated framework for executing these tools should be established very earl
 
 Source control is an absolute necessity for any software development project. If you are not using one yet, start using one.
 
- * [GitHub](https://github.com/) - allows for unlimited public repositories, must pay for a private repository.
+ * [GitHub](https://github.com/) - allows for unlimited public repositories, and unlimited private repositories with up to 3 collaborators.
  * [Bitbucket](https://bitbucket.org/) - allows for unlimited private repositories with up to 5 collaborators, for free.
  * [SourceForge](http://sourceforge.net/) - open source hosting only.
  * [GitLab](https://gitlab.com/) - allows for unlimited public and private repositories, unlimited CI Runners included, for free.
@@ -20,19 +20,33 @@ Use an industry standard widely accepted build tool. This prevents you from rein
    * Consider: https://github.com/sakra/cotire/ for build performance
    * Consider: https://github.com/toeb/cmakepp for enhanced usability
    * Utilize: https://cmake.org/cmake/help/v3.6/command/target_compile_features.html for C++ standard flags
- * [Conan](https://www.conan.io/) - a crossplatform dependency manager for C++
- * [C++ Archive Network (CPPAN)](https://cppan.org/) - a crossplatform dependency manager for C++
+   * Consider: https://github.com/cheshirekow/cmake_format for automatic formatting of your CMakeLists.txt
+   * See the [Further Reading](10-Further_Reading.md) section for CMake specific best practices
+   * `cmake --build` provides a common interface for compiling your project regardless of platform
  * [Waf](https://waf.io/)
  * [FASTBuild](http://www.fastbuild.org/)
  * [Ninja](https://ninja-build.org/) - can greatly improve the incremental build time of your larger projects. Can be used as a target for CMake.
- * [Bazel](http://bazel.io/) - Note: MacOS and Linux only.
+ * [Bazel](http://bazel.io/) - Fast incremental builds using network artefact caching and remote execution
+ * [Buck](http://buckbuild.com/) - Similar to Bazel, with very good support for iOS and Andoid
  * [gyp](https://chromium.googlesource.com/external/gyp/) - Google's build tool for chromium.
  * [maiken](https://github.com/Dekken/maiken) - Crossplatform build tool with Maven-esque configuration style.
  * [Qt Build Suite](http://doc.qt.io/qbs/) - Crossplatform build tool From Qt.
  * [meson](http://mesonbuild.com/index.html) - Open source build system meant to be both extremely fast, and, even more importantly, as user friendly as possible.
  * [premake](https://premake.github.io/) 
 
+
 Remember, it's not just a build tool, it's also a programming language. Try to maintain good clean build scripts and follow the recommended practices for the tool you are using.
+
+## Package Manager
+
+Package management is an important topic in C++, with currently no clear winner. Consider using a package manager to help you keep track of the dependencies for your project and make it easier for new people to get started with the project.
+
+ * [Conan](https://www.conan.io/) - a crossplatform dependency manager for C++
+ * [hunter](https://github.com/ruslo/hunter) - CMake driven cross-platform package manager for C/C++
+ * [C++ Archive Network (CPPAN)](https://cppan.org/) - a crossplatform dependency manager for C++
+ * [qpm](https://www.qpm.io/) - Package manager for Qt
+ * [build2](https://build2.org/) - cargo-like package management for C++
+ * [Buckaroo](https://buckaroo.pm) - Truly decentralized cross-platform dependency manager for C/C++ and more
 
 ## Continuous Integration
 
@@ -94,11 +108,19 @@ You should use as many compilers as you can for your platform(s). Each compiler 
  * `-Wcast-align` warn for potential performance problem casts
  * `-Wunused` warn on anything being unused
  * `-Woverloaded-virtual` warn if you overload (not override) a virtual function
- * `-pedantic`
+ * `-Wpedantic` (all versions of GCC, Clang >= 3.2) warn if non-standard C++ is used
  * `-Wconversion` warn on type conversions that may lose data
- * `-Wsign-conversion` warn on sign conversions
- * `-Wmisleading-indentation` warn if identation implies blocks where blocks do not exist
-
+ * `-Wsign-conversion` (Clang all versions, GCC >= 4.3) warn on sign conversions
+ * `-Wmisleading-indentation` (only in GCC >= 6.0) warn if indentation implies blocks where blocks do not exist
+ * `-Wduplicated-cond` (only in GCC >= 6.0) warn if `if` / `else` chain has duplicated conditions
+ * `-Wduplicated-branches` (only in GCC >= 7.0) warn if `if` / `else` branches have duplicated code
+ * `-Wlogical-op` (only in GCC) warn about logical operations being used where bitwise were probably wanted
+ * `-Wnull-dereference` (only in GCC >= 6.0) warn if a null dereference is detected
+ * `-Wuseless-cast` (only in GCC >= 4.8) warn if you perform a cast to the same type
+ * `-Wdouble-promotion` (GCC >= 4.6, Clang >= 3.8) warn if `float` is implicit promoted to `double`
+ * `-Wformat=2` warn on security issues around functions that format output (ie `printf`)
+ * `-Wlifetime` (only special branch of Clang currently) shows object lifetime issues
+ 
 Consider using `-Weverything` and disabling the few warnings you need to on Clang
 
 
@@ -106,7 +128,9 @@ Consider using `-Weverything` and disabling the few warnings you need to on Clan
 
 ### MSVC
 
-`/W4 /W44640` - use these and consider the following
+`/permissive-` - [Enforces standards conformance](https://docs.microsoft.com/en-us/cpp/build/reference/permissive-standards-conformance).
+
+`/W4 /w14640` - use these and consider the following (see descriptions below)
 
  * `/W4` All reasonable warnings
  * `/w14242` 'identfier': conversion from 'type1' to 'type1', possible loss of data
@@ -178,12 +202,23 @@ Notes:
  * For correct work it requires well formed path for headers, so before usage don't forget to pass: `--check-config`.
  * Finding unused headers does not work with `-j` more than 1. 
  * Remember to add `--force` for code with a lot number of `#ifdef` if you need check all of them.
+ 
+### cppclean
+
+[cppclean](https://github.com/myint/cppclean) - Open source static analyzer focused on finding problems in C++ source that slow development of large code bases.
+
+ 
+### CppDepend
+ 
+[CppDepend](https://www.cppdepend.com/) Simplifies managing a complex C/C++ code base by analyzing and visualizing code dependencies, by defining design rules, by doing impact analysis, and comparing different versions of the code. It's free for OSS contributors.
 
 ### Clang's Static Analyzer
 
 Clang's analyzer's default options are good for the respective platform. It can be used directly [from CMake](http://garykramlich.blogspot.com/2011/10/using-scan-build-from-clang-with-cmake.html). They can also be called via clang-check and clang-tidy from the [LLVM-based Tools](#llvm-based-tools).
 
 Also, [CodeChecker](https://github.com/Ericsson/CodeChecker) is available as a front-end to clang's static analysis.
+
+`clang-tidy` can be easily used with Visual Studio via the [Clang Power Tools](https://clangpowertools.com) extension.
 
 ### MSVC's Static Analyzer
 
@@ -192,6 +227,10 @@ Can be enabled with the `/analyze` [command line option](http://msdn.microsoft.c
 ### Flint / Flint++
 
 [Flint](https://github.com/facebook/flint) and [Flint++](https://github.com/L2Program/FlintPlusPlus) are linters that analyze C++ code against Facebook's coding standards.
+
+### OCLint
+
+[OCLint](http://oclint.org/) is a free, libre and open source static code analysis tool for improving quality of C++ code in many different ways.
 
 ### ReSharper C++ / CLion
 
@@ -204,6 +243,15 @@ The Eclipse based [Cevelop](https://www.cevelop.com/) IDE has various static ana
 ### Qt Creator
 
 Qt Creator can plug into the clang static analyzer.
+
+### clazy
+
+[clazy](https://github.com/KDE/clazy) is a clang based tool for analyzing Qt usage.
+
+### IKOS
+
+[IKOS](https://ti.arc.nasa.gov/opensource/ikos/) is an open source static analyzer, developed by NASA. It is based on the Abstract Interpretation. It is written in C++ and provides an analyzer for C and C++, using LLVM.
+The source code is [available on Github](https://github.com/NASA-SW-VnV/ikos).
 
 ## Runtime Checkers
 
@@ -223,6 +271,7 @@ A coverage analysis tool shall be run when tests are executed to make sure the e
  * [kcov](http://simonkagstrom.github.io/kcov/index.html)
    * integrates with codecov and coveralls
    * performs code coverage reporting without needing special compiler flags, just by instrumenting debug symbols.
+ * [OpenCppCoverage](https://github.com/OpenCppCoverage/OpenCppCoverage) - open source coverage reporting tool for Windows.
 
 
 ### Valgrind
@@ -242,6 +291,8 @@ These tools provide many of the same features as Valgrind, but built into the co
  * ThreadSanitizer
  * UndefinedBehaviorSanitizer
 
+Be aware of the sanitizer options available, including runtime options. https://kristerw.blogspot.com/2018/06/useful-gcc-address-sanitizer-checks-not.html
+
 ### Fuzzy Analyzers
 
 If your project accepts user defined input, considering running a fuzzy input tester. 
@@ -251,6 +302,18 @@ Both of these tools use coverage reporting to find new code execution paths and 
  * [american fuzzy lop](http://lcamtuf.coredump.cx/afl/)
  * [LibFuzzer](http://llvm.org/docs/LibFuzzer.html)
  * [KLEE](http://klee.github.io/) - Can be used to fuzz individual functions
+
+### Control Flow Guard
+
+MSVC's [Control Flow Guard](https://msdn.microsoft.com/en-us/library/windows/desktop/mt637065%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396) adds high performance runtime security checks.
+
+### Checked STL Implementations
+
+ * `_GLIBCXX_DEBUG` with GCC's implementation libstdc++ implementation. See [Krister's blog article](https://kristerw.blogspot.se/2018/03/detecting-incorrect-c-stl-usage.html).
+
+### Heap Profiling
+
+ * [https://epfl-vlsc.github.io/memoro/](Memoro) - A detailed heap profiler 
 
 ## Ignoring Warnings
 
@@ -287,6 +350,10 @@ Don't forget to make sure that your error handling is being tested and works pro
 [rr](http://rr-project.org/) is a free (open source) reverse debugger that supports C++.
 
 ## Other Tools
+
+### Lizard
+
+[Lizard](http://www.lizard.ws/) provides a very simple interface for running complexity analysis against a C++ codebase.
 
 ### Metrix++
 

@@ -16,7 +16,7 @@ namespace my_project {
     // if the above macro would be expanded, then the following line would be:
     //   static const double 3.14159 = 3.14159;
     // which leads to a compile-time error. Sometimes such errors are hard to understand.
-    static const double PI = 3.14159;
+    static constexpr double PI = 3.14159;
   };
 }
 ```
@@ -29,7 +29,29 @@ See http://mortoray.com/2015/06/15/get-rid-of-those-boolean-function-parameters/
 
 ## Avoid Raw Loops
 
-Know and understand the existing C++ standard algorithms and put them to use. See [C++ Seasoning](https://www.youtube.com/watch?v=qH6sSOr-yk8) for more details. 
+Know and understand the existing C++ standard algorithms and put them to use.
+
+ * See [cppreference](https://en.cppreference.com/w/cpp/algorithm)
+ * Watch [C++ Seasoning](https://www.youtube.com/watch?v=qH6sSOr-yk8)
+ 
+Consider a call to `[]` as a potential code smell, indicating that an algorithm was not used where it could have been.
+
+
+## Never Use `assert` With Side Effects
+
+```cpp
+// Bad Idea
+assert(set_value(something));
+
+// Better Idea
+[[maybe_unused]] const auto success = set_value(something);
+assert(success);
+```
+
+The `assert()` will be removed in release builds which will prevent the `set_value` call from ever happening.
+
+So while the second version is uglier, the first version is simply not correct.
+
 
 ## Properly Utilize 'override' and 'final'
 

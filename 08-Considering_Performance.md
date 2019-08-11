@@ -59,7 +59,7 @@ After you build using Templight, you will need to analyze the results. The [temp
 
 #### Don't Unnecessarily Include Headers
 
-The compiler has to do something with each include directive it sees. Even if it stops as soon as it seems the `#ifndef` include guard, it still had to open the file and begin processing it.
+The compiler has to do something with each include directive it sees. Even if it stops as soon as it sees the `#ifndef` include guard, it still had to open the file and begin processing it.
 
 [include-what-you-use](https://github.com/include-what-you-use/include-what-you-use) is a tool that can help you identify which headers you need.
 
@@ -83,7 +83,8 @@ Tools like [cotire](https://github.com/sakra/cotire/) (a plugin for cmake) can h
 
 These are not meant to supersede good design
 
- * [ccache](https://ccache.samba.org/)
+ * [ccache](https://ccache.samba.org/), compile results caching for unix-like operating systems
+ * [clcache](https://github.com/frerich/clcache), compile results caching for cl.exe (MSVC)
  * [warp](https://github.com/facebook/warp), Facebook's preprocessor
 
 ### Put tmp on Ramdisk
@@ -272,13 +273,23 @@ for (int i = 0; i < 15; ++i)
 // obj is still taking up memory for no reason
 ```
 
+For C++17 and onwards, consider using init-statement in the `if` and `switch` statements:
+
+```cpp
+if (MyObject obj(index); obj.good()) {
+    // do something if obj is good
+} else {
+    // do something if obj is not good
+}
+```
+
 [This topic has an associated discussion thread](https://github.com/lefticus/cppbestpractices/issues/52).
 
 ### Prefer `double` to `float`, But Test First
 
 Depending on the situation and the compiler's ability to optimize, one may be faster over the other. Choosing `float` will result in lower precision and may be slower due to conversions. On vectorizable operations `float` may be faster if you are able to sacrifice precision. 
 
-`double` is the recomended default choice as it is the default type for floating point values in C++.
+`double` is the recommended default choice as it is the default type for floating point values in C++.
 
 See this [stackoverflow](http://stackoverflow.com/questions/4584637/double-or-float-which-is-faster) discussion for some more information. 
 
@@ -331,3 +342,13 @@ f("world");
 auto f = [](const std::string &s) { return my_function("hello", s); };
 f("world");
 ```
+
+
+### Know The Standard Library
+
+Properly use the already highly optimized components of the vendor provided standard library.
+
+#### `in_place_t` And Related
+
+Be aware of how to use `in_place_t` and related tags for efficient creation of objects such as `std::tuple`, `std::any` and `std::variant`.
+

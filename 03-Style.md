@@ -9,6 +9,23 @@ C++ allows for arbitrary-length identifier names, so there's no reason to be ter
 
 are common examples. *snake_case* has the advantage that it can also work with spell checkers, if desired.
 
+## Establishing A Style Guideline
+
+Whatever style guidelines you establish, be sure to implement a `.clang-format` file that specifies the style you expect. While this cannot help with naming, it is particularly important for an open source project to maintain a consistent style.
+
+Every IDE and many editors have support for clang-format built in or easily installable with an add-in.
+
+ * VSCode: [Microsoft C/C++ extension for VS Code](https://github.com/Microsoft/vscode-cpptools)
+ * CLion: https://www.jetbrains.com/help/clion/clangformat-as-alternative-formatter.html
+ * VisualStudio https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.ClangFormat#review-details
+ * Resharper++: https://www.jetbrains.com/help/resharper/2017.2/Using_Clang_Format.html
+ * Vim
+     * https://github.com/rhysd/vim-clang-format
+     * https://github.com/chiel92/vim-autoformat
+ * XCode: https://github.com/travisjeffery/ClangFormat-Xcode
+
+
+
 ## Common C++ Naming Conventions
 
  * Types start with upper case: `MyClass`.
@@ -223,7 +240,9 @@ It also makes it possible to have two separate files next to each other on one s
 ```
 
 ## Initialize Member Variables
-...with the member initializer list.
+...with the member initializer list. 
+
+For POD types, the performance of an initializer list is the same as manual initialization, but for other types there is a clear performance gain, see below.
 
 ```cpp
 // Bad Idea
@@ -239,11 +258,23 @@ private:
   int m_value;
 };
 
+// Bad Idea
+// This leads to an additional constructor call for m_myOtherClass
+// before the assignment.
+class MyClass
+{
+public:
+  MyClass(MyOtherClass t_myOtherClass)
+  {
+    m_myOtherClass = t_myOtherClass;
+  }
+
+private:
+  MyOtherClass m_myOtherClass;
+};
 
 // Good Idea
-// C++'s member initializer list is unique to the language and leads to
-// cleaner code and potential performance gains that other languages cannot
-// match.
+// There is no performance gain here but the code is cleaner.
 class MyClass
 {
 public:
@@ -254,6 +285,21 @@ public:
 
 private:
   int m_value;
+};
+
+// Good Idea
+// The default constructor for m_myOtherClass is never called here, so 
+// there is a performance gain if MyOtherClass is not is_trivially_default_constructible. 
+class MyClass
+{
+public:
+  MyClass(MyOtherClass t_myOtherClass)
+    : m_myOtherClass(t_myOtherClass)
+  {
+  }
+
+private:
+  MyOtherClass m_myOtherClass;
 };
 ```
 
@@ -319,7 +365,7 @@ In general, using `auto` will avoid most of these issues, but not all.
 
 Make sure you stick with the correct integer types and remain consistent with the C++ standard library. It might not warn on the platform you are currently using, but it probably will when you change platforms.
 
-*Note that you can cause integer underflow when peforming some operations on unsigned values. For example:*
+*Note that you can cause integer underflow when performing some operations on unsigned values. For example:*
 
 ```cpp
 std::vector<int> v1{2,3,4,5,6,7,8,9};
